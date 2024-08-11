@@ -1,6 +1,8 @@
 package http
 
 import (
+	"fmt"
+	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
@@ -18,11 +20,36 @@ func serve_file(w http.ResponseWriter, req *http.Request) {
 	http.FileServer(http.FS(web_dir)).ServeHTTP(w, req)
 }
 
-func trimBaseURL(baseURL string) string {
+func trim_base_url(baseURL string) string {
 	if baseURL == "/" {
 		return "/"
 	}
 	return strings.TrimRight(baseURL, "/")
+}
+
+func serve_template(tmpl string) func(http.ResponseWriter, *http.Request) {
+	web_dir, err := fs.Sub(fsys, "web")
+	if err != nil {
+		log.Fatal(err)
+	}
+	return func(w http.ResponseWriter, req *http.Request) {
+		fmt.Println("Serving a template")
+		// Load and parse the template file
+		t, err := template.ParseFS(web_dir, tmpl)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			log.Println("Error parsing template:", err)
+			return
+		}
+
+		fmt.Println("Serving a template ", w)
+		// Execute the template with data (if any)
+		err = t.Execute(w, nil)
+		if err != nil {
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			log.Println("Error executing template:", err)
+		}
+	}
 }
 
 // Router takes a base URL for prefixing all URLs returned
@@ -33,8 +60,9 @@ func Router(baseURL string) *chi.Mux {
 	rV := chi.NewRouter()
 	rV.Use(middleware.Logger)
 	rV.Use(middleware.RealIP)
-	baseUrlWithoutLastSlash := trimBaseURL(baseURL)
+	baseUrlWithoutLastSlash := trim_base_url(baseURL)
 	rV.Route(baseUrlWithoutLastSlash, func(r chi.Router) {
+		r.Handle("/", http.StripPrefix(baseURL, http.HandlerFunc(serve_template("index.tmpl"))))
 		r.Handle("/*", http.StripPrefix(baseURL, http.HandlerFunc(serve_file)))
 	})
 	return rV
