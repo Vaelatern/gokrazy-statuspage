@@ -32,6 +32,7 @@ func trimBaseURL(baseURL string) string {
 func Router(baseURL string) *chi.Mux {
 	rV := chi.NewRouter()
 	rV.Use(middleware.Logger)
+	rV.Use(middleware.RealIP)
 	baseUrlWithoutLastSlash := trimBaseURL(baseURL)
 	rV.Route(baseUrlWithoutLastSlash, func(r chi.Router) {
 		r.Handle("/*", http.StripPrefix(baseURL, http.HandlerFunc(serve_file)))
