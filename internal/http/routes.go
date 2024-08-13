@@ -70,6 +70,7 @@ func Router(baseURL string) *chi.Mux {
 	baseUrlWithoutLastSlash := trim_base_url(baseURL)
 	rV.Route(baseUrlWithoutLastSlash, func(r chi.Router) {
 		r.Handle("/", http.StripPrefix(baseURL, http.HandlerFunc(serve_template("index.tmpl"))))
+		r.Handle("/tmpl/main.html", http.StripPrefix(baseURL, http.HandlerFunc(serve_template("tmpl/main.html"))))
 		r.Handle("/*", http.StripPrefix(baseURL, http.HandlerFunc(serve_file)))
 	})
 	return rV
