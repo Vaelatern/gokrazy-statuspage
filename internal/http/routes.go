@@ -1,7 +1,6 @@
 package http
 
 import (
-	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
@@ -10,20 +9,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+
+	"github.com/Vaelatern/gokrazy-statuspage/internal/metrics"
 )
 
-type Card struct {
-	Title              string
-	Metric             string
-	IconText           string
-	ShowHeartPulseIcon bool
-	ShowServerIcon     bool
-	IsOK               bool
-	IsError            bool
-}
-
 type Payload struct {
-	Cards []Card
+	NumCols int
+	Cards   []metrics.Card
 }
 
 func serve_file(w http.ResponseWriter, req *http.Request) {
@@ -47,21 +39,9 @@ func serve_template(tmpl string) func(http.ResponseWriter, *http.Request) {
 		log.Fatal(err)
 	}
 
-	payload := Payload{Cards: []Card{
-		Card{Title: "Self", Metric: "0ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Self", ShowServerIcon: true, IsOK: true},
-		Card{Title: "Office1", Metric: "317ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Server", Metric: "68ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Server Responding", IsOK: true, IconText: "HTTP"},
-		Card{Title: "Office2", Metric: "334ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Office Synology", Metric: "66ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Office Synology Responding", IsOK: true, IconText: "HTTP"},
-		Card{Title: "Office3", IsError: true, ShowHeartPulseIcon: true},
-		Card{Title: "Home Synology", Metric: "41ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Home Synology Responding", IsOK: true, IconText: "HTTP"}}}
+	payload := Payload{NumCols: 3, Cards: metrics.AllCards()}
 
 	return func(w http.ResponseWriter, req *http.Request) {
-		fmt.Println("Serving a template")
 		// Load and parse the template file
 		t, err := template.ParseFS(web_dir, tmpl, "definitions.tmpl")
 		if err != nil {
@@ -70,7 +50,6 @@ func serve_template(tmpl string) func(http.ResponseWriter, *http.Request) {
 			return
 		}
 
-		fmt.Println("Serving a template ", w)
 		// Execute the template with data (if any)
 		err = t.Execute(w, payload)
 		if err != nil {
