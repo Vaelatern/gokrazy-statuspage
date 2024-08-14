@@ -2,6 +2,7 @@ package app
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -16,6 +17,12 @@ func initConfig() error {
 	viper.BindPFlags(pflag.CommandLine)
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
+
+	if otherConfigDir, isSet := os.LookupEnv("CONFIG_DIR"); isSet {
+		viper.AddConfigPath(otherConfigDir)
+	}
+	viper.AutomaticEnv()
+
 	err := viper.ReadInConfig()
 	if err != nil {
 		return err
