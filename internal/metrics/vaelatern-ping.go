@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
@@ -53,4 +55,7 @@ func pingCard(data interface{}) Card {
 
 func init() {
 	RegisterCardPlugin("vaelatern-ping", pingCard)
+	if os.Getenv("GOKRAZY_FIRST_START") == "1" {
+		ioutil.WriteFile("/proc/sys/net/ipv4/ping_group_range", []byte("0\t2147483647"), 0600)
+	}
 }
