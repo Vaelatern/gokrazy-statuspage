@@ -9,13 +9,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/spf13/viper"
 
 	"github.com/Vaelatern/gokrazy-statuspage/internal/metrics"
 )
 
 type Payload struct {
-	NumCols int
-	Cards   []metrics.Card
+	SecondsPoll int
+	NumCols     int
+	Cards       []metrics.Card
 }
 
 func serve_file(w http.ResponseWriter, req *http.Request) {
@@ -39,9 +41,11 @@ func serve_template(tmpl string) func(http.ResponseWriter, *http.Request) {
 		log.Fatal(err)
 	}
 
-	payload := Payload{NumCols: 3, Cards: metrics.AllCards()}
-
 	return func(w http.ResponseWriter, req *http.Request) {
+		payloadConfig := viper.Get("tests")
+		payload := Payload{NumCols: 3,
+			SecondsPoll: viper.GetInt("poll-frequency"),
+			Cards:       metrics.AllCards()}
 		// Load and parse the template file
 		t, err := template.ParseFS(web_dir, tmpl, "definitions.tmpl")
 		if err != nil {

@@ -12,6 +12,7 @@ import (
 func initConfig() error {
 	viper.SetDefault("listen", ":3000")
 	viper.SetDefault("base-url", "/")
+	viper.SetDefault("poll-frequency", 30)
 	viper.BindPFlags(pflag.CommandLine)
 	viper.SetConfigName("config")
 	viper.AddConfigPath(".")
