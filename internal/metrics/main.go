@@ -1,5 +1,11 @@
 package metrics
 
+import (
+	"sync"
+
+	"github.com/mitchellh/mapstructure"
+)
+
 type Card struct {
 	Title              string
 	Metric             string
@@ -10,17 +16,54 @@ type Card struct {
 	IsError            bool
 }
 
-func AllCards() []Card {
-	return []Card{
-		Card{Title: "Self", Metric: "0ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Self", ShowServerIcon: true, IsOK: true},
-		Card{Title: "Office1", Metric: "317ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Server", Metric: "68ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Server Responding", IsOK: true, IconText: "HTTP"},
-		Card{Title: "Office2", Metric: "334ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Office Synology", Metric: "66ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Office Synology Responding", IsOK: true, IconText: "HTTP"},
-		Card{Title: "Office3", IsError: true, ShowHeartPulseIcon: true},
-		Card{Title: "Home Synology", Metric: "41ms", IsOK: true, ShowHeartPulseIcon: true},
-		Card{Title: "Home Synology Responding", IsOK: true, IconText: "HTTP"}}
+type Callback func(interface{}) Card
+
+var (
+	plugins map[string]Callback
+)
+
+func init() {
+	plugins = make(map[string]Callback)
+}
+
+func RegisterCardPlugin(name string, cb Callback) {
+	plugins[name] = cb
+}
+
+type inputData struct {
+	Plugin string `mapstructure:"type"`
+}
+
+func AllCards(data []interface{}) []Card {
+	var returnVal []Card = make([]Card, len(data))
+	var wg sync.WaitGroup
+	cardChan := make(chan struct {
+		int
+		Card
+	}, len(data))
+	for i, d := range data {
+		wg.Add(1)
+		go func(i int, d interface{}) {
+			defer wg.Done()
+			var input inputData
+			mapstructure.Decode(d, &input)
+			if whichPlugin, found := plugins[input.Plugin]; found {
+				cardChan <- struct {
+					int
+					Card
+				}{i, whichPlugin(d)}
+			} else {
+				cardChan <- struct {
+					int
+					Card
+				}{i, Card{Title: "Unknown type"}}
+			}
+		}(i, d)
+	}
+	wg.Wait()
+	close(cardChan)
+	for v := range cardChan {
+		returnVal[v.int] = v.Card
+	}
+	return returnVal
 }

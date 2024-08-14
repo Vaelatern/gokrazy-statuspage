@@ -43,9 +43,9 @@ func serve_template(tmpl string) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		payloadConfig := viper.Get("tests")
-		payload := Payload{NumCols: 3,
+		payload := Payload{NumCols: viper.GetInt("columns"),
 			SecondsPoll: viper.GetInt("poll-frequency"),
-			Cards:       metrics.AllCards()}
+			Cards:       metrics.AllCards(payloadConfig.([]interface{}))}
 		// Load and parse the template file
 		t, err := template.ParseFS(web_dir, tmpl, "definitions.tmpl")
 		if err != nil {
