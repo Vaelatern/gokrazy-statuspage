@@ -8,15 +8,15 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type http200Data struct {
+type vaelatern_http200Data struct {
 	Desc     string `mapstructure:"desc"`
 	Url      string `mapstructure:"url"`
 	Verb     string `mapstructure:"http-verb"`
 	StatusOK []int  `mapstructure:"status-codes-accepted"`
 }
 
-func http200Card(data interface{}) Card {
-	var myOrders http200Data
+func vaelatern_http200Card(data interface{}) Card {
+	var myOrders vaelatern_http200Data
 	mapstructure.Decode(data, &myOrders)
 	if myOrders.Verb == "" {
 		myOrders.Verb = "GET"
@@ -61,5 +61,5 @@ func http200Card(data interface{}) Card {
 }
 
 func init() {
-	RegisterCardPlugin("vaelatern-http-200", http200Card)
+	RegisterCardPlugin("vaelatern-http-200", vaelatern_http200Card)
 }

@@ -8,15 +8,15 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type portData struct {
+type vaelatern_portData struct {
 	Desc  string `mapstructure:"desc"`
 	Host  string `mapstructure:"host"`
 	Port  int    `mapstructure:"port"`
 	Proto string `mapstructure:"proto"`
 }
 
-func portCard(data interface{}) Card {
-	var myOrders portData
+func vaelatern_portCard(data interface{}) Card {
+	var myOrders vaelatern_portData
 	mapstructure.Decode(data, &myOrders)
 	if myOrders.Desc == "" {
 		myOrders.Desc = myOrders.Host
@@ -43,5 +43,5 @@ func portCard(data interface{}) Card {
 }
 
 func init() {
-	RegisterCardPlugin("vaelatern-port-open", portCard)
+	RegisterCardPlugin("vaelatern-port-open", vaelatern_portCard)
 }

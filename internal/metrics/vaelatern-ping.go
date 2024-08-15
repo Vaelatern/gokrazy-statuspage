@@ -9,14 +9,14 @@ import (
 	probing "github.com/prometheus-community/pro-bing"
 )
 
-type pingData struct {
+type vaelatern_pingData struct {
 	Desc        string `mapstructure:"desc"`
 	Host        string `mapstructure:"host"`
 	FailIsError bool   `mapstructure:"failIsError"`
 }
 
-func pingCard(data interface{}) Card {
-	var myOrders pingData
+func vaelatern_pingCard(data interface{}) Card {
+	var myOrders vaelatern_pingData
 	mapstructure.Decode(data, &myOrders)
 	if myOrders.Desc == "" {
 		myOrders.Desc = myOrders.Host
@@ -54,7 +54,7 @@ func pingCard(data interface{}) Card {
 }
 
 func init() {
-	RegisterCardPlugin("vaelatern-ping", pingCard)
+	RegisterCardPlugin("vaelatern-ping", vaelatern_pingCard)
 	if os.Getenv("GOKRAZY_FIRST_START") == "1" {
 		ioutil.WriteFile("/proc/sys/net/ipv4/ping_group_range", []byte("0\t2147483647"), 0600)
 	}
