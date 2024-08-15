@@ -43,6 +43,20 @@ func serve_template(tmpl string) func(http.ResponseWriter, *http.Request) {
 
 	return func(w http.ResponseWriter, req *http.Request) {
 		payloadConfig := viper.Get("tests")
+		if payloadConfig == nil {
+			t, err := template.ParseFS(web_dir, "not-configured.html", "definitions.tmpl")
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				log.Println("Error parsing template:", err)
+				return
+			}
+			err = t.Execute(w, nil)
+			if err != nil {
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				log.Println("Error executing template:", err)
+			}
+			return
+		}
 		payload := Payload{NumCols: viper.GetInt("columns"),
 			SecondsPoll: viper.GetInt("poll-frequency"),
 			Cards:       metrics.AllCards(payloadConfig.([]interface{}))}
