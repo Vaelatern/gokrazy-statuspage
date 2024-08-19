@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 
@@ -33,7 +34,8 @@ func initConfig() error {
 
 func Entrypoint() error {
 	if err := initConfig(); err != nil {
-		return err
+		fmt.Println(err)
 	}
+	fmt.Println("Listening on ", viper.GetString("listen"), " and at base URL ", viper.GetString("base-url"))
 	return http.ListenAndServe(viper.GetString("listen"), app_http.Router(viper.GetString("base-url")))
 }
